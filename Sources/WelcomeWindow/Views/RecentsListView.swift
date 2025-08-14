@@ -20,25 +20,27 @@ public struct RecentsListView: View {
 
     @FocusState.Binding private var focusedField: FocusTarget?
     private let dismissWindow: () -> Void
+    private let openHandler: WelcomeOpenHandler
 
     public init(
         recentProjects: Binding<[URL]>,
         selection: Binding<Set<URL>>,
         focusedField: FocusState<FocusTarget?>.Binding,
-        dismissWindow: @escaping () -> Void
+        dismissWindow: @escaping () -> Void,
+        openHandler: @escaping WelcomeOpenHandler
     ) {
         self._recentProjects = recentProjects
         self._selection = selection
         self._focusedField = focusedField
         self.dismissWindow = dismissWindow
+        self.openHandler = openHandler
     }
 
     private var isFocused: Bool {
         focusedField == .recentProjects
     }
 
-    @ViewBuilder
-    private var listEmptyView: some View {
+    @ViewBuilder private var listEmptyView: some View {
         VStack {
             Spacer()
             Text("No Recent Projects")
@@ -70,11 +72,7 @@ public struct RecentsListView: View {
                 }
             }
         } primaryAction: { items in
-            for url in items {
-                NSDocumentController.shared.openDocument(at: url) {
-                    dismissWindow()
-                }
-            }
+            openHandler(Array(items), dismissWindow)
         }
         .onCopyCommand {
             selection.map { NSItemProvider(object: $0.path(percentEncoded: false) as NSString) }
@@ -84,11 +82,7 @@ public struct RecentsListView: View {
         }
         .background {
             Button("") {
-                selection.forEach { url in
-                    NSDocumentController.shared.openDocument(at: url) {
-                        dismissWindow()
-                    }
-                }
+                openHandler(Array(selection), dismissWindow)
             }
             .keyboardShortcut(.defaultAction)
             .hidden()

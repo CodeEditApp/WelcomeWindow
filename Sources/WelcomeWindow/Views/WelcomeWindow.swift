@@ -15,6 +15,7 @@ public struct WelcomeWindow<RecentsView: View, SubtitleView: View>: Scene {
     private let customRecentsList: ((_ dismissWindow: @escaping () -> Void) -> RecentsView)?
     private let onDrop: ((_ url: URL, _ dismiss: @escaping () -> Void) -> Void)?
     private let subtitleView: (() -> SubtitleView)?
+    private let openHandler: WelcomeOpenHandler?
 
     let iconImage: Image?
     let title: String?
@@ -33,7 +34,8 @@ public struct WelcomeWindow<RecentsView: View, SubtitleView: View>: Scene {
         @ActionsBuilder actions: @escaping (_ dismissWindow: @escaping () -> Void) -> WelcomeActions,
         customRecentsList: ((_ dismissWindow: @escaping () -> Void) -> RecentsView)? = nil,
         subtitleView: (() -> SubtitleView)? = nil,
-        onDrop: ((_ url: URL, _ dismiss: @escaping () -> Void) -> Void)? = nil
+        onDrop: ((_ url: URL, _ dismiss: @escaping () -> Void) -> Void)? = nil,
+        openHandler: WelcomeOpenHandler? = nil
     ) {
         self.iconImage = iconImage
         self.title = title
@@ -41,6 +43,7 @@ public struct WelcomeWindow<RecentsView: View, SubtitleView: View>: Scene {
         self.customRecentsList = customRecentsList
         self.subtitleView = subtitleView
         self.onDrop = onDrop
+        self.openHandler = openHandler
     }
 
     public var body: some Scene {
@@ -52,7 +55,8 @@ public struct WelcomeWindow<RecentsView: View, SubtitleView: View>: Scene {
                 subtitleView: subtitleView,
                 buildActions: buildActions,
                 onDrop: onDrop,
-                customRecentsList: customRecentsList
+                customRecentsList: customRecentsList,
+                openHandler: openHandler
             )
             .frame(width: 740, height: isMacOS26 ? 460 - 28 : 460)
             .task {
@@ -71,6 +75,20 @@ public struct WelcomeWindow<RecentsView: View, SubtitleView: View>: Scene {
     }
 }
 
+/// A closure type used to handle opening recent items from the default `RecentsListView`.
+///
+/// This allows apps to override the default `NSDocumentController` behavior for
+/// opening files, making the handling of recent-item URLs fully configurable.
+///
+/// The closure is executed on the **main actor** to ensure UI safety.
+///
+/// - Parameters:
+///   - urls: The recent-item URLs selected by the user to be opened.
+///   - dismiss: A closure to invoke when the opening process is complete and the
+///              `RecentsListView` can be dismissed.
+///
+public typealias WelcomeOpenHandler = @MainActor (_ urls: [URL], _ dismiss: @escaping () -> Void) -> Void
+
 // ──────────────────────────────────────────────────────────────
 // 1)  NEITHER a custom recents list NOR a subtitle view
 // ──────────────────────────────────────────────────────────────
@@ -81,7 +99,8 @@ extension WelcomeWindow where RecentsView == EmptyView, SubtitleView == EmptyVie
         iconImage: Image? = nil,
         title: String?    = nil,
         @ActionsBuilder actions: @escaping (_ dismissWindow: @escaping () -> Void) -> WelcomeActions,
-        onDrop: ((_ url: URL, _ dismissWindow: @escaping () -> Void) -> Void)? = nil
+        onDrop: ((_ url: URL, _ dismissWindow: @escaping () -> Void) -> Void)? = nil,
+        openHandler: WelcomeOpenHandler? = nil
     ) {
         self.init(
             iconImage: iconImage,
@@ -89,7 +108,8 @@ extension WelcomeWindow where RecentsView == EmptyView, SubtitleView == EmptyVie
             actions: actions,
             customRecentsList: nil,
             subtitleView: nil,
-            onDrop: onDrop
+            onDrop: onDrop,
+            openHandler: openHandler
         )
     }
 }
@@ -105,7 +125,8 @@ extension WelcomeWindow where RecentsView == EmptyView {
         title: String?    = nil,
         subtitleView: @escaping () -> SubtitleView,
         @ActionsBuilder actions: @escaping (_ dismissWindow: @escaping () -> Void) -> WelcomeActions,
-        onDrop: ((_ url: URL, _ dismissWindow: @escaping () -> Void) -> Void)? = nil
+        onDrop: ((_ url: URL, _ dismissWindow: @escaping () -> Void) -> Void)? = nil,
+        openHandler: WelcomeOpenHandler? = nil
     ) {
         self.init(
             iconImage: iconImage,
@@ -113,7 +134,8 @@ extension WelcomeWindow where RecentsView == EmptyView {
             actions: actions,
             customRecentsList: nil,
             subtitleView: subtitleView,
-            onDrop: onDrop
+            onDrop: onDrop,
+            openHandler: openHandler
         )
     }
 }
@@ -129,7 +151,8 @@ extension WelcomeWindow where SubtitleView == EmptyView {
         title: String?    = nil,
         @ActionsBuilder actions: @escaping (_ dismissWindow: @escaping () -> Void) -> WelcomeActions,
         customRecentsList: ((_ dismissWindow: @escaping () -> Void) -> RecentsView)? = nil,
-        onDrop: ((_ url: URL, _ dismissWindow: @escaping () -> Void) -> Void)? = nil
+        onDrop: ((_ url: URL, _ dismissWindow: @escaping () -> Void) -> Void)? = nil,
+        openHandler: WelcomeOpenHandler? = nil
     ) {
         self.init(
             iconImage: iconImage,
@@ -137,7 +160,8 @@ extension WelcomeWindow where SubtitleView == EmptyView {
             actions: actions,
             customRecentsList: customRecentsList,
             subtitleView: nil,
-            onDrop: onDrop
+            onDrop: onDrop,
+            openHandler: openHandler
         )
     }
 }

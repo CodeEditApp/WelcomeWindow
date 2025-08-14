@@ -64,8 +64,7 @@ public struct WelcomeView<SubtitleView: View>: View {
         }
     }
 
-    @ViewBuilder
-    private var mainContent: some View {
+    @ViewBuilder private var mainContent: some View {
         VStack(spacing: 0) {
             Spacer().frame(height: 32)
             ZStack {
@@ -154,8 +153,7 @@ public struct WelcomeView<SubtitleView: View>: View {
         }
     }
 
-    @ViewBuilder
-    private var dismissButton: some View {
+    @ViewBuilder private var dismissButton: some View {
         Button(action: dismissWindow) {
             Image(systemName: "xmark.circle.fill")
                 .foregroundColor(isHoveringCloseButton ? Color(.secondaryLabelColor) : Color(.tertiaryLabelColor))
