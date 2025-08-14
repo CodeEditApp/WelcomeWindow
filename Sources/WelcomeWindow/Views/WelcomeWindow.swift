@@ -75,6 +75,18 @@ public struct WelcomeWindow<RecentsView: View, SubtitleView: View>: Scene {
     }
 }
 
+/// A closure type used to handle opening recent items from the default `RecentsListView`.
+///
+/// This allows apps to override the default `NSDocumentController` behavior for
+/// opening files, making the handling of recent-item URLs fully configurable.
+///
+/// The closure is executed on the **main actor** to ensure UI safety.
+///
+/// - Parameters:
+///   - urls: The recent-item URLs selected by the user to be opened.
+///   - dismiss: A closure to invoke when the opening process is complete and the
+///              `RecentsListView` can be dismissed.
+///
 public typealias WelcomeOpenHandler = @MainActor (_ urls: [URL], _ dismiss: @escaping () -> Void) -> Void
 
 // ──────────────────────────────────────────────────────────────

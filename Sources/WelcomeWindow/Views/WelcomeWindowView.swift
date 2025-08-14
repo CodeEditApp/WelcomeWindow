@@ -45,9 +45,9 @@ public struct WelcomeWindowView<RecentsView: View, SubtitleView: View>: View {
         self.buildActions = buildActions
         self.onDrop = onDrop
         self.customRecentsList = customRecentsList
-        self.openHandler = openHandler  
+        self.openHandler = openHandler
     }
-    
+
     private func defaultOpenHandler(urls: [URL], dismiss: @escaping () -> Void) {
         var dismissed = false
         for url in urls {

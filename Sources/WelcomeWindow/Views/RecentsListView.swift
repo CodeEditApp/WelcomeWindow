@@ -40,8 +40,7 @@ public struct RecentsListView: View {
         focusedField == .recentProjects
     }
 
-    @ViewBuilder
-    private var listEmptyView: some View {
+    @ViewBuilder private var listEmptyView: some View {
         VStack {
             Spacer()
             Text("No Recent Projects")
