@@ -25,6 +25,7 @@ public struct WelcomeWindowView<RecentsView: View, SubtitleView: View>: View {
     private let onDrop: ((_ url: URL, _ dismiss: @escaping () -> Void) -> Void)?
     private let customRecentsList: ((_ dismissWindow: @escaping () -> Void) -> RecentsView)?
     private let subtitleView: (() -> SubtitleView)?
+    private let openHandler: WelcomeOpenHandler?
 
     let iconImage: Image?
     let title: String?
@@ -35,7 +36,8 @@ public struct WelcomeWindowView<RecentsView: View, SubtitleView: View>: View {
         subtitleView: (() -> SubtitleView)? = nil,
         buildActions: @escaping (_ dismissWindow: @escaping () -> Void) -> WelcomeActions,
         onDrop: ((_ url: URL, _ dismiss: @escaping () -> Void) -> Void)? = nil,
-        customRecentsList: ((_ dismissWindow: @escaping () -> Void) -> RecentsView)? = nil
+        customRecentsList: ((_ dismissWindow: @escaping () -> Void) -> RecentsView)? = nil,
+        openHandler: WelcomeOpenHandler? = nil
     ) {
         self.iconImage = iconImage
         self.title = title
@@ -43,11 +45,25 @@ public struct WelcomeWindowView<RecentsView: View, SubtitleView: View>: View {
         self.buildActions = buildActions
         self.onDrop = onDrop
         self.customRecentsList = customRecentsList
+        self.openHandler = openHandler  
+    }
+    
+    private func defaultOpenHandler(urls: [URL], dismiss: @escaping () -> Void) {
+        var dismissed = false
+        for url in urls {
+            NSDocumentController.shared.openDocument(at: url) {
+                if !dismissed {
+                    dismissed = true
+                    dismiss()
+                }
+            }
+        }
     }
 
     public var body: some View {
         let dismiss = dismissWindow.callAsFunction
         let actions = buildActions(dismiss)
+        let effectiveOpen = openHandler ?? defaultOpenHandler
 
         return HStack(spacing: 0) {
             WelcomeView(
@@ -67,7 +83,8 @@ public struct WelcomeWindowView<RecentsView: View, SubtitleView: View>: View {
                         recentProjects: $recentProjects,
                         selection: $selection,
                         focusedField: $focusedField,
-                        dismissWindow: dismiss
+                        dismissWindow: dismiss,
+                        openHandler: effectiveOpen
                     )
                 }
             }
