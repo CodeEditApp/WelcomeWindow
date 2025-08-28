@@ -8,14 +8,6 @@
 import SwiftUI
 import AppKit
 
-struct CustomContainer<SubView: View>: View {
-    let createChild: (() -> SubView)?
-
-    var body: some View {
-        createChild?()
-    }
-}
-
 public struct WelcomeWindowView<RecentsView: View, SubtitleView: View>: View {
 
     @Environment(\.dismiss)
