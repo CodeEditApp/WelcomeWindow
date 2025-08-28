@@ -13,7 +13,7 @@ public struct WelcomeWindow<RecentsView: View, SubtitleView: View>: Scene {
 
     private let buildActions: (_ dismissWindow: @escaping () -> Void) -> WelcomeActions
     private let customRecentsList: ((_ dismissWindow: @escaping () -> Void) -> RecentsView)?
-    private let onDrop: ((_ url: URL, _ dismiss: @escaping () -> Void) -> Void)?
+    private let onDrop: (@Sendable (_ url: URL, _ dismiss: @escaping () -> Void) -> Void)?
     private let subtitleView: (() -> SubtitleView)?
     private let openHandler: WelcomeOpenHandler?
 
@@ -34,7 +34,7 @@ public struct WelcomeWindow<RecentsView: View, SubtitleView: View>: Scene {
         @ActionsBuilder actions: @escaping (_ dismissWindow: @escaping () -> Void) -> WelcomeActions,
         customRecentsList: ((_ dismissWindow: @escaping () -> Void) -> RecentsView)? = nil,
         subtitleView: (() -> SubtitleView)? = nil,
-        onDrop: ((_ url: URL, _ dismiss: @escaping () -> Void) -> Void)? = nil,
+        onDrop: (@Sendable (_ url: URL, _ dismiss: @escaping () -> Void) -> Void)? = nil,
         openHandler: WelcomeOpenHandler? = nil
     ) {
         self.iconImage = iconImage
@@ -99,7 +99,7 @@ extension WelcomeWindow where RecentsView == EmptyView, SubtitleView == EmptyVie
         iconImage: Image? = nil,
         title: String?    = nil,
         @ActionsBuilder actions: @escaping (_ dismissWindow: @escaping () -> Void) -> WelcomeActions,
-        onDrop: ((_ url: URL, _ dismissWindow: @escaping () -> Void) -> Void)? = nil,
+        onDrop: (@Sendable (_ url: URL, _ dismissWindow: @escaping () -> Void) -> Void)? = nil,
         openHandler: WelcomeOpenHandler? = nil
     ) {
         self.init(
@@ -125,7 +125,7 @@ extension WelcomeWindow where RecentsView == EmptyView {
         title: String?    = nil,
         subtitleView: @escaping () -> SubtitleView,
         @ActionsBuilder actions: @escaping (_ dismissWindow: @escaping () -> Void) -> WelcomeActions,
-        onDrop: ((_ url: URL, _ dismissWindow: @escaping () -> Void) -> Void)? = nil,
+        onDrop: (@Sendable (_ url: URL, _ dismissWindow: @escaping () -> Void) -> Void)? = nil,
         openHandler: WelcomeOpenHandler? = nil
     ) {
         self.init(
@@ -151,7 +151,7 @@ extension WelcomeWindow where SubtitleView == EmptyView {
         title: String?    = nil,
         @ActionsBuilder actions: @escaping (_ dismissWindow: @escaping () -> Void) -> WelcomeActions,
         customRecentsList: ((_ dismissWindow: @escaping () -> Void) -> RecentsView)? = nil,
-        onDrop: ((_ url: URL, _ dismissWindow: @escaping () -> Void) -> Void)? = nil,
+        onDrop: (@Sendable (_ url: URL, _ dismissWindow: @escaping () -> Void) -> Void)? = nil,
         openHandler: WelcomeOpenHandler? = nil
     ) {
         self.init(
