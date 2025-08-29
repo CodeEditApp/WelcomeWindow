@@ -25,7 +25,7 @@ extension NSDocumentController {
     public func createFileDocumentWithDialog(
         configuration: DocumentSaveDialogConfiguration = .init(),
         onDialogPresented: @escaping () -> Void = {},
-        onCompletion: @escaping () -> Void = {},
+        onCompletion: @MainActor @escaping () -> Void = {},
         onCancel: @escaping () -> Void = {}
     ) {
         _createDocument(
@@ -53,7 +53,7 @@ extension NSDocumentController {
     public func createFolderDocumentWithDialog(
         configuration: DocumentSaveDialogConfiguration,
         onDialogPresented: @escaping () -> Void = {},
-        onCompletion: @escaping () -> Void = {},
+        onCompletion: @MainActor @escaping () -> Void = {},
         onCancel: @escaping () -> Void = {}
     ) {
         _createDocument(
@@ -100,7 +100,7 @@ extension NSDocumentController {
         mode: SaveMode,
         configuration: DocumentSaveDialogConfiguration,
         onDialogPresented: @escaping () -> Void,
-        onCompletion: @escaping () -> Void,
+        onCompletion: @MainActor @escaping () -> Void,
         onCancel: @escaping () -> Void
     ) {
         // 1 ────────────────────────────────────────────────────────────────
@@ -177,8 +177,8 @@ extension NSDocumentController {
     public func openDocumentWithDialog(
         configuration: DocumentOpenDialogConfiguration = DocumentOpenDialogConfiguration(),
         onDialogPresented: @escaping () -> Void = {},
-        onCompletion: @escaping () -> Void = {},
-        onCancel: @escaping () -> Void = {}
+        onCompletion: @MainActor @escaping () -> Void = {},
+        onCancel: @MainActor @escaping () -> Void = {}
     ) {
         let panel = NSOpenPanel()
         panel.title = configuration.title
@@ -189,12 +189,14 @@ extension NSDocumentController {
         panel.level = .modalPanel
 
         panel.begin { result in
-            guard result == .OK, let selectedURL = panel.url else {
-                onCancel()
-                return
-            }
+            DispatchQueue.mainIfNot {
+                guard result == .OK, let selectedURL = panel.url else {
+                    onCancel()
+                    return
+                }
 
-            self.openDocument(at: selectedURL, onCompletion: onCompletion, onError: { _ in onCancel() })
+                self.openDocument(at: selectedURL, onCompletion: onCompletion, onError: { _ in onCancel() })
+            }
         }
         onDialogPresented()
     }
@@ -208,25 +210,27 @@ extension NSDocumentController {
     @MainActor
     public func openDocument(
         at url: URL,
-        onCompletion: @escaping () -> Void = {},
-        onError: @escaping (Error) -> Void = { _ in }
+        onCompletion: @MainActor @escaping () -> Void = {},
+        onError: @MainActor @escaping (Error) -> Void = { _ in }
     ) {
         let accessGranted = RecentsStore.beginAccessing(url)
         openDocument(withContentsOf: url, display: true) { _, _, error in
-            if let error {
-                if accessGranted {
-                    RecentsStore.endAccessing(url)
+            DispatchQueue.mainIfNot {
+                if let error {
+                    if accessGranted {
+                        RecentsStore.endAccessing(url)
+                    }
+                    DispatchQueue.main.async {
+                        NSAlert(error: error).runModal()
+                    }
+                    onError(error)
+                } else {
+                    RecentsStore.documentOpened(at: url)
+                    DispatchQueue.main.async {
+                        NSApp.activate(ignoringOtherApps: true)
+                    }
+                    onCompletion()
                 }
-                DispatchQueue.main.async {
-                    NSAlert(error: error).runModal()
-                }
-                onError(error)
-            } else {
-                RecentsStore.documentOpened(at: url)
-                DispatchQueue.main.async {
-                    NSApp.activate(ignoringOtherApps: true)
-                }
-                onCompletion()
             }
         }
     }

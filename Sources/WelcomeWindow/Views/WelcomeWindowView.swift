@@ -22,7 +22,7 @@ public struct WelcomeWindowView<RecentsView: View, SubtitleView: View>: View {
     @State private var selection: Set<URL> = []
 
     private let buildActions: (_ dismissWindow: @escaping () -> Void) -> WelcomeActions
-    private let onDrop: ((_ url: URL, _ dismiss: @escaping () -> Void) -> Void)?
+    private let onDrop: (@Sendable (_ url: URL, _ dismiss: @escaping () -> Void) -> Void)?
     private let customRecentsList: ((_ dismissWindow: @escaping () -> Void) -> RecentsView)?
     private let subtitleView: (() -> SubtitleView)?
     private let openHandler: WelcomeOpenHandler?
@@ -35,7 +35,7 @@ public struct WelcomeWindowView<RecentsView: View, SubtitleView: View>: View {
         title: String? = nil,
         subtitleView: (() -> SubtitleView)? = nil,
         buildActions: @escaping (_ dismissWindow: @escaping () -> Void) -> WelcomeActions,
-        onDrop: ((_ url: URL, _ dismiss: @escaping () -> Void) -> Void)? = nil,
+        onDrop: (@Sendable (_ url: URL, _ dismiss: @escaping () -> Void) -> Void)? = nil,
         customRecentsList: ((_ dismissWindow: @escaping () -> Void) -> RecentsView)? = nil,
         openHandler: WelcomeOpenHandler? = nil
     ) {
@@ -60,12 +60,20 @@ public struct WelcomeWindowView<RecentsView: View, SubtitleView: View>: View {
         }
     }
 
-    public var body: some View {
-        let dismiss = dismissWindow.callAsFunction
-        let actions = buildActions(dismiss)
-        let effectiveOpen = openHandler ?? defaultOpenHandler
+    var dismiss: () -> Void {
+        dismissWindow.callAsFunction
+    }
 
-        return HStack(spacing: 0) {
+    var actions: WelcomeActions {
+        buildActions(dismiss)
+    }
+
+    var effectiveOpen: (@MainActor ([URL], @escaping () -> Void) -> Void) {
+        openHandler ?? defaultOpenHandler
+    }
+
+    public var body: some View {
+        HStack(spacing: 0) {
             WelcomeView(
                 iconImage: iconImage,
                 title: title,
@@ -114,11 +122,11 @@ public struct WelcomeWindowView<RecentsView: View, SubtitleView: View>: View {
         }
         .onDrop(of: [.fileURL], isTargeted: .constant(true)) { providers in
             NSApp.activate(ignoringOtherApps: true)
-            providers.forEach {
+            providers.forEach { [onDrop, dismissWindow] in
                 _ = $0.loadDataRepresentation(for: .fileURL) { data, _ in
                     if let data, let url = URL(dataRepresentation: data, relativeTo: nil) {
                         Task { @MainActor in
-                            onDrop?(url, dismiss)
+                            onDrop?(url, dismissWindow.callAsFunction)
                         }
                     }
                 }

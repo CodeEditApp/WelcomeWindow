@@ -39,7 +39,7 @@ public enum RecentsStore {
         }
     }
 
-    private static let logger = Logger(
+    private nonisolated static let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "com.example.app",
         category: "RecentsStore"
     )
