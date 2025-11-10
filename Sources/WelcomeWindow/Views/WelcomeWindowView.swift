@@ -112,6 +112,8 @@ public struct WelcomeWindowView<RecentsView: View, SubtitleView: View>: View {
         .edgesIgnoringSafeArea(.top)
         .focused($focusedField, equals: FocusTarget.none)
         .onAppear {
+            recentProjects = RecentsStore.recentProjectURLs()
+            
             // Set initial selection
             if !recentProjects.isEmpty {
                 selection = [recentProjects[0]]
